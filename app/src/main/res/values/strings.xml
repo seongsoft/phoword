@@ -1,0 +1,54 @@
+<resources>
+    <string name="app_name">Phoword</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="action_confirm">추가</string>
+
+    <string name="favorites">Favorites</string>
+    <string name="all_words">모든 단어</string>
+
+    <string name="action_save">저장</string>
+    <string name="action_delete">삭제</string>
+    <string name="action_edit">수정</string>
+    <string name="action_rotate">회전</string>
+    <string name="action_add_in_voca">리스트에 추가</string>
+    <string name="action_all">모두</string>
+
+    <string name="double_back_to_exit">\'뒤로\' 버튼을 한 번 더 누르시면 종료됩니다.</string>
+
+    <string name="word_empty_view">중앙 하단의 버튼을 눌러 단어를 추가해보세요.</string>
+    <string name="word_in_voca_empty_view">우측 상단의 버튼을 눌러 단어를 추가해보세요.</string>
+    <string name="recognized_word_empty_view">인식된 단어가 없습니다.</string>
+
+    <string name="dialog_add_voca_title">새 단어장 추가</string>
+    <string name="dialog_add_word_title">새 단어 추가</string>
+
+    <string name="dialog_edit_title">수정</string>
+    <string name="dialog_remove_title">삭제</string>
+
+    <string name="word">단어</string>
+    <string name="meaning">뜻</string>
+    <string name="confirm">확인</string>
+    <string name="cancel">취소</string>
+    <string name="add">추가</string>
+
+    <string name="start">시작</string>
+
+    <string name="word_duplication">단어가 이미 존재합니다.</string>
+
+    <string name="correct_percentage">정답률</string>
+    <string name="num_correct">맞은 단어</string>
+    <string name="num_wrong">틀린 단어</string>
+    <string name="spinner_voca">단어장을 선택하세요</string>
+    <string name="spinner_numwords">단어수를 선택하세요</string>
+
+    <string name="num_words">단어수</string>
+    <string name="quiz_type">퀴즈유형</string>
+
+    <string name="general">일반</string>
+    <string name="word_sync">단어 동기화</string>
+    <string name="about">정보</string>
+    <string name="score_result">성적</string>
+
+    <string name="version">Phoword v1.0</string>
+</resources>

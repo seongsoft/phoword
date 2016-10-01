@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/general">
+        <Preference
+            android:title="@string/score_result" />
+        <Preference
+            android:title="@string/word_sync" />
+        <Preference
+            android:title="@string/about" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

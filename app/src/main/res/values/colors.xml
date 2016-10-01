@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#009688</color>
+    <color name="colorPrimaryDark">#00796B</color>
+    <color name="colorAccent">#009688</color>
+
+    <color name="colorUnfocusedDark">#B2FFFFFF</color>
+    <color name="colorUnfocusedLight">#89000000</color>
+    <color name="colorDisabledDark">#4CFFFFFF</color>
+    <color name="colorDisabledLight">#B2000000</color>
+
+    <color name="voca1">#E53935</color>
+    <color name="voca2">#FF6F42</color>
+    <color name="voca3">#378D3B</color>
+    <color name="voca4">#00887A</color>
+    <color name="voca5">#1D87E4</color>
+    <color name="voca6">#029AE4</color>
+    <color name="voca7">#00ABC0</color>
+    <color name="voca8">#A900FF</color>
+    <color name="voca9">#8C6D62</color>
+    <color name="voca10">#414141</color>
+    <color name="voca11">#778F9B</color>
+    <color name="red">#F44336</color>
+
+    <color name="favorites">#FFC107</color>
+    <color name="all">#009688</color>
+    <color name="green">#4CAF50</color>
+    
+    <color name="colorSelected">#004D40</color>
+</resources>

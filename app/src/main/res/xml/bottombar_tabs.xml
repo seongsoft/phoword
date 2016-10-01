@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tabs>
+    <tab
+        id="@+id/tab_vocabulary"
+        icon="@drawable/ic_vocabulary_small"
+        title="단어장" />
+    <tab
+        id="@+id/tab_account"
+        icon="@drawable/ic_word"
+        title="단어" />
+    <tab
+        id="@+id/tab_blank"
+        />
+    <tab
+        id="@+id/tab_quiz"
+        icon="@drawable/ic_quiz"
+        title="퀴즈" />
+    <tab
+        id="@+id/tab_settings"
+        icon="@drawable/ic_settings"
+        title="설정" />
+</tabs>

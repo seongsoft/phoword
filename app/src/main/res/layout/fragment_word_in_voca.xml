@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:id="@+id/view_empty_word"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content">
+
+        <ImageView
+            android:alpha="0.2"
+            android:id="@+id/image_empty_word"
+            android:layout_centerHorizontal="true"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:src="@drawable/ic_empty" />
+
+        <TextView
+            android:alpha="0.2"
+            android:layout_below="@id/image_empty_word"
+            android:layout_centerHorizontal="true"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_width="wrap_content"
+            android:text="@string/word_in_voca_empty_view"
+            android:textColor="@android:color/black" />
+
+    </RelativeLayout>
+
+    <com.seongsoft.phoword.component.MyRecyclerView
+        android:id="@+id/recyclerview_word_in_voca"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>
