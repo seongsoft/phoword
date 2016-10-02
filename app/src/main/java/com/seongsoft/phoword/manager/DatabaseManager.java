@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.seongsoft.phoword.R;
 import com.seongsoft.phoword.component.Vocabulary;
 import com.seongsoft.phoword.component.WordSet;
 import com.seongsoft.phoword.utility.JSONParser;
@@ -56,7 +57,7 @@ public class DatabaseManager {
         @Override
         public void onCreate(SQLiteDatabase db) {
             String sql = "CREATE TABLE " + WORD_TABLE + " ("
-                    + WORD + " TEXT NOT NULL PRIMARY KEY, "
+                    + WORD + " TEXT NOT NULL PRIMARY KEY UNIQUE, "
                     + MEANING + " TEXT NOT NULL, "
                     + PRONOUNCE + " TEXT, "
                     + AUDIO + " TEXT, "
@@ -92,7 +93,7 @@ public class DatabaseManager {
         mDBHelper = new DatabaseHelper(mContext, DB_NAME, null, DB_VERISION);
     }
 
-    public void insertWord(String word, String meaning, String pronounce,
+    public boolean insertWord(String word, String meaning, String pronounce,
                            String audio, String example, String exampleMeaning, long date)
             throws SQLiteConstraintException {
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
@@ -105,11 +106,13 @@ public class DatabaseManager {
                     + DatabaseUtils.sqlEscapeString(exampleMeaning) + ", " + date + ");";
             db.execSQL(sql);
         } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
+            return false;
         }
+
+        return true;
     }
 
-    public void insertVoca(Vocabulary vocabulary, WordSet wordSet) {
+    public boolean insertVoca(Vocabulary vocabulary, WordSet wordSet) {
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             String sql = "INSERT INTO " + VOCA_TABLE
@@ -120,8 +123,10 @@ public class DatabaseManager {
                     + ((wordSet != null) ? wordSet.getWord() : 0) + "');";
             db.execSQL(sql);
         } catch (SQLiteConstraintException e) {
-            e.printStackTrace();
+            return false;
         }
+
+        return true;
     }
 
     public void editWord(WordSet sWordSet, WordSet dWordSet) {
@@ -197,10 +202,8 @@ public class DatabaseManager {
 
     public ArrayList<WordSet> selectWordsInVoca(Vocabulary vocabulary) {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
-//        String sql = "SELECT " + VOCA_WORD + ", " + VOCA_MEANING + " FROM " + VOCA_TABLE
-//                + " WHERE " + VOCA_NAME + "='" + vocabulary.getName() + "';";
         String sql = "SELECT " + VOCA_WORD + " FROM " + VOCA_TABLE
-                + " WHERE " + VOCA_NAME + "='" + vocabulary.getName() + "' " + "NOT NULL " + ";";
+                + " WHERE " + VOCA_NAME + "='" + vocabulary.getName() + "';";
         Cursor cursor = db.rawQuery(sql, null);
         List<WordSet> wordSets = new ArrayList<>();
 
@@ -301,8 +304,7 @@ public class DatabaseManager {
 
     public ArrayList<WordSet> selectFavoriteWords() {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
-        String sql = "SELECT * FROM " + WORD_TABLE + " WHERE " + FAVORITE + "" +
-                "=" + 1 + ";";
+        String sql = "SELECT * FROM " + WORD_TABLE + " WHERE " + FAVORITE + "=" + 1 + ";";
         Cursor cursor = db.rawQuery(sql, null);
         List<WordSet> wordSets = new ArrayList<>();
 
@@ -361,10 +363,10 @@ public class DatabaseManager {
         return true;
     }
 
-    public boolean vocaExists(String listName) {
+    public boolean vocaExists(String vocabularyName) {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
         String sql = "SELECT " + VOCA_NAME + " FROM " + VOCA_TABLE
-                + " WHERE " + VOCA_NAME + "='" + listName + "';";
+                + " WHERE " + VOCA_NAME + "='" + vocabularyName + "';";
         Cursor cursor = db.rawQuery(sql, null);
 
         if (cursor != null && cursor.getCount() > 0) return true;
@@ -378,10 +380,8 @@ public class DatabaseManager {
         Cursor cursor = null;
         List<WordSet> wordSets = null;
 
-        if (vocabularyName.equals("모든 단어")) {
-            sql = "SELECT * FROM " + WORD_TABLE
-                    + " ORDER BY " + QUIZ_COUNT + " ASC, " + CORRECT_COUNT + " DESC"
-                    + " LIMIT " + limit + ";";
+        if (vocabularyName.equals(mContext.getString(R.string.all_words))) {
+            sql = "SELECT * FROM " + WORD_TABLE + " LIMIT " + limit + ";";
             cursor = db.rawQuery(sql, null);
             wordSets = new ArrayList<>();
 
@@ -396,7 +396,8 @@ public class DatabaseManager {
                         String audio = cursor.getString(cursor.getColumnIndex(AUDIO));
                         String exampleJSON = cursor.getString(cursor.getColumnIndex(EXAMPLE));
                         List<String> example = JSONParser.parseFromJSON(exampleJSON, "예문");
-                        List<String> exampleMeaning = JSONParser.parseFromJSON(exampleJSON, "해석");
+                        String exampleMeaningJSON = cursor.getString(cursor.getColumnIndex(EXAMPLE_MEANING));
+                        List<String> exampleMeaning = JSONParser.parseFromJSON(exampleMeaningJSON, "해석");
                         int quizCount = cursor.getInt(cursor.getColumnIndex(QUIZ_COUNT));
                         int correctCount = cursor.getInt(cursor.getColumnIndex(CORRECT_COUNT));
                         int favorite = cursor.getInt(cursor.getColumnIndex(FAVORITE));
@@ -415,11 +416,48 @@ public class DatabaseManager {
                 }
                 cursor.close();
             }
+        } else if (vocabularyName.equals(mContext.getString(R.string.favorites))) {
+            sql = "SELECT * FROM " + WORD_TABLE
+                    + " WHERE " + FAVORITE + "=1 LIMIT " + limit + ";";
+            cursor = db.rawQuery(sql, null);
+            wordSets = new ArrayList<>();
+
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    while (!cursor.isAfterLast()) {
+                        int favorite = cursor.getInt(cursor.getColumnIndex(FAVORITE));
+                        if (favorite == 1) {
+                            String word = cursor.getString(cursor.getColumnIndex(WORD));
+                            String meaningJSON = cursor.getString(cursor.getColumnIndex(MEANING));
+                            List<String> meaning = JSONParser.parseFromJSON(meaningJSON, "뜻");
+                            String pronounce = cursor.getString(cursor.getColumnIndex(PRONOUNCE));
+                            String audio = cursor.getString(cursor.getColumnIndex(AUDIO));
+                            String exampleJSON = cursor.getString(cursor.getColumnIndex(EXAMPLE));
+                            List<String> example = JSONParser.parseFromJSON(exampleJSON, "예문");
+                            String exampleMeaningJSON = cursor.getString(cursor.getColumnIndex(EXAMPLE_MEANING));
+                            List<String> exampleMeaning = JSONParser.parseFromJSON(exampleMeaningJSON, "해석");
+                            int quizCount = cursor.getInt(cursor.getColumnIndex(QUIZ_COUNT));
+                            int correctCount = cursor.getInt(cursor.getColumnIndex(CORRECT_COUNT));
+                            long date = cursor.getLong(cursor.getColumnIndex(DATE));
+
+                            WordSet wordSet
+                                    = new WordSet(word, (ArrayList<String>) meaning, pronounce, audio,
+                                    (ArrayList<String>) example, (ArrayList<String>) exampleMeaning,
+                                    quizCount, correctCount, favorite == 1, date);
+
+                            wordSets.add(wordSet);
+                        }
+
+                    /*   Cursor를 close 후 다음으로 옮김   */
+                        cursor.moveToNext();
+                    }
+                }
+                cursor.close();
+            }
         } else {
             sql = "SELECT " + VOCA_WORD + " FROM " + VOCA_TABLE
                     + " WHERE " + VOCA_NAME + "='" + vocabularyName
-                    + "' ORDER BY " + QUIZ_COUNT + " ASC, " + CORRECT_COUNT + " DESC"
-                    + " LIMIT " + limit + ";";
+                    + "' LIMIT " + limit + ";";
             cursor = db.rawQuery(sql, null);
             wordSets = new ArrayList<>();
 

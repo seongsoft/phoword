@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class WordSet implements Parcelable {
@@ -18,8 +19,6 @@ public class WordSet implements Parcelable {
     private int correctCount;
     private boolean favorite;
     private long date;
-
-    private boolean selected;
 
     public static final Creator<WordSet> CREATOR = new Creator<WordSet>() {
         @Override
@@ -114,14 +113,6 @@ public class WordSet implements Parcelable {
         return date;
     }
 
-    public void setSelected(boolean isSelected) {
-        this.selected = isSelected;
-    }
-
-    public boolean isSelected() {
-        return selected;
-    }
-
     public void setFavorite(boolean isFavorite) {
         this.favorite = isFavorite;
     }
@@ -148,5 +139,14 @@ public class WordSet implements Parcelable {
         dest.writeByte((byte) (favorite ? 1 : 0));
         dest.writeLong(date);
     }
+
+    public static Comparator<WordSet> Comparator = new Comparator<WordSet>() {
+        @Override
+        public int compare(WordSet lhs, WordSet rhs) {
+            int result = lhs.getQuizCount() - rhs.getQuizCount();
+            if (result == 0) return rhs.getCorrectCount() - lhs.getCorrectCount();
+            return result;
+        }
+    };
 
 }

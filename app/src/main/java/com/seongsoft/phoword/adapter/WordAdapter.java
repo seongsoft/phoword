@@ -13,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.TranslateAnimation;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -59,6 +58,8 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
     private Drawable mStarImage;
     private Drawable mSelectedStarImage;
 
+    private List<Boolean> mIsSelected;
+
     private int mType;
     private int mCount;
 
@@ -74,6 +75,7 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
         mCheckBoxes = new ArrayList<>();
         mFavoriteButtons = new ArrayList<>();
+        mIsSelected = new ArrayList<>();
 
         mDBManager = new DatabaseManager(mContext);
 
@@ -100,17 +102,33 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, final int position) {
-        final WordSet wordSet = mWordSets.get(position);
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+        final WordSet wordSet = mDBManager.selectWord(mWordSets.get(position).getWord());
         final ImageButton hFavoriteIB = holder.mFavoriteIB;
         final CheckBox hCheckBox = holder.mCheckBox;
         final RelativeLayout hClickLayout = holder.mClickLayout;
 
-        mCheckBoxes.add(hCheckBox);
-        mFavoriteButtons.add(hFavoriteIB);
+        if (mCheckBoxes.size() <= position) mCheckBoxes.add(position, hCheckBox);
+        if (mFavoriteButtons.size() <= position) mFavoriteButtons.add(position, hFavoriteIB);
+        if (mIsSelected.size() <= position) mIsSelected.add(position, false);
 
-        if (wordSet.isFavorite())
-            hFavoriteIB.setImageDrawable(mStarImage);
+        holder.mWordTV.setText(wordSet.getWord());
+        if (wordSet.getMeaning().size() > 1) {
+            holder.mMeaningTV.setText(wordSet.getMeaning().get(0) + ", "
+                    + wordSet.getMeaning().get(1));
+        } else {
+            holder.mMeaningTV.setText(wordSet.getMeaning().get(0));
+        }
+
+        if (isChoiceMode) {
+            hFavoriteIB.setVisibility(View.GONE);
+            hCheckBox.setVisibility(View.VISIBLE);
+        }
+
+        hCheckBox.setChecked(mIsSelected.get(position));
+
+        if (wordSet.isFavorite()) hFavoriteIB.setImageDrawable(mSelectedStarImage);
+        else hFavoriteIB.setImageDrawable(mStarImage);
 
         hFavoriteIB.setColorFilter(ContextCompat.getColor(mContext, R.color.favorites), PorterDuff.Mode.MULTIPLY);
         hFavoriteIB.setOnClickListener(new View.OnClickListener() {
@@ -130,27 +148,14 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
             }
         });
 
-        holder.mWordTV.setText(wordSet.getWord());
-        if (wordSet.getMeaning().size() > 1) {
-            holder.mMeaningTV.setText(wordSet.getMeaning().get(0) + ", "
-                    + wordSet.getMeaning().get(1));
-        } else {
-            holder.mMeaningTV.setText(wordSet.getMeaning().get(0));
-        }
-
-        hCheckBox.setChecked(wordSet.isSelected());
-        if (wordSet.isFavorite())
-            hFavoriteIB.setImageDrawable(mSelectedStarImage);
-        else
-            hFavoriteIB.setImageDrawable(mStarImage);
-
-        if (isChoiceMode)
-            hCheckBox.setVisibility(View.VISIBLE);
-
         hClickLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 if (!isChoiceMode) {
+                    isChoiceMode = true;
+
+                    hClickLayout.setPressed(false);
+
                     mActionMode = ((AppCompatActivity) mContext).startSupportActionMode(
                             new ActionBarCallBack());
                     View customView = LayoutInflater.from(mContext)
@@ -160,12 +165,14 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
                     mChoiceModeCheckBox.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (mChoiceModeCheckBox.isChecked()) {
-                                selectAllWords();
-                                mCount = mWordSets.size();
-                            } else {
+                            if (mCount == mWordSets.size()) {
                                 deselectAllWords();
+                                mChoiceModeCheckBox.setChecked(false);
                                 mCount = 0;
+                            } else {
+                                selectAllWords();
+                                mChoiceModeCheckBox.setChecked(true);
+                                mCount = mWordSets.size();
                             }
                             mChoiceModeCheckBox.setText(mCount + " selected");
                         }
@@ -173,12 +180,9 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
                     if (mActionMode != null) mActionMode.setCustomView(customView);
 
-                    TranslateAnimation animate = new TranslateAnimation(0, hCheckBox.getWidth(), 0, 0);
-                    animate.setDuration(50);
-                    animate.setFillAfter(true);
-
-                    /*   모든 아이템의 체크박스 활성화   */
-                    //checkMode(animate);
+//                    TranslateAnimation animate = new TranslateAnimation(0, hCheckBox.getWidth(), 0, 0);
+//                    animate.setDuration(50);
+//                    animate.setFillAfter(true);
 
                     for (CheckBox checkBox : mCheckBoxes)
                         checkBox.setVisibility(View.VISIBLE);
@@ -186,11 +190,8 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
                     for (ImageButton favoriteButton : mFavoriteButtons)
                         favoriteButton.setVisibility(View.GONE);
 
-                    isChoiceMode = true;
-                    hClickLayout.setPressed(false);
-
                     hCheckBox.setChecked(true);
-                    wordSet.setSelected(true);
+                    mIsSelected.set(holder.getAdapterPosition(), true);
 
                     mCount++;
                     mChoiceModeCheckBox.setText(mCount + " selected");
@@ -200,6 +201,9 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
                         bottomBar.getTabAtPosition(index).setEnabled(false);
                         bottomBar.setAlpha(0.2f);
                     }
+
+                    ((MainActivity) mContext).disableFAM();
+                    ((MainActivity) mContext).disableSearchFAB();
                 }
 
                 return false;
@@ -210,14 +214,15 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
             @Override
             public void onClick(View v) {
                 if (isChoiceMode) {
-                    if (wordSet.isSelected())
-                        mCount--;
-                    else
-                        mCount++;
+                    if (mIsSelected.get(holder.getAdapterPosition())) mCount--;
+                    else mCount++;
+
+                    if (mCount == mWordSets.size()) mChoiceModeCheckBox.setChecked(true);
+                    else mChoiceModeCheckBox.setChecked(false);
                     mChoiceModeCheckBox.setText(mCount + " selected");
 
                     hCheckBox.setChecked(!hCheckBox.isChecked());
-                    wordSet.setSelected(hCheckBox.isChecked());
+                    mIsSelected.set(holder.getAdapterPosition(), hCheckBox.isChecked());
                 } else {
                     WordInfoDialogFragment wordInfoDialog = WordInfoDialogFragment.newInstance(wordSet);
                     wordInfoDialog.show(((AppCompatActivity) mContext).getSupportFragmentManager(), null);
@@ -356,11 +361,11 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
             if (resultCode == RESULT_OK) {
                 if (requestCode == REQUEST_REMOVE) {
                     removeWords();
-                    quitChoiceMode();
                     Toast.makeText(mContext,
                             getSelectedWordSets().size() + "개의 단어가 삭제되었습니다.",
                             Toast.LENGTH_SHORT)
                             .show();
+                    quitChoiceMode();
                     mActionMode.finish();
                 }
             }
@@ -369,12 +374,17 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
         // 단어장 안에서 삭제 아이템 선택 시
         @Override
         public void onRemove() {
-            removeWordsInVoca();
-            quitChoiceMode();
+            if (mVocabulary.getName().equals(mContext.getString(R.string.favorites))) {
+                removeFavorite();
+            } else {
+                removeWordsInVoca();
+            }
+
             Toast.makeText(mContext,
                     getSelectedWordSets().size() + "개의 단어가 삭제되었습니다.",
                     Toast.LENGTH_SHORT)
                     .show();
+            quitChoiceMode();
             mActionMode.finish();
         }
 
@@ -386,19 +396,14 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
                 checkBox.setVisibility(View.GONE);
                 checkBox.setChecked(false);
             }
-            for (WordSet wordSet : mWordSets) {
-                wordSet.setSelected(false);
+
+            for (int index = 0; index < mIsSelected.size(); index++) {
+                mIsSelected.set(index, false);
             }
 
-//            if (mContext instanceof WordInListActivity) {
-//                for (ImageButton favoriteButton : mFavoriteButtons)
-//                    favoriteButton.setVisibility(View.INVISIBLE);
-//            } else {
-//                for (ImageButton favoriteButton : mFavoriteButtons)
-//                    favoriteButton.setVisibility(View.VISIBLE);
-//            }
-            for (ImageButton favoriteButton : mFavoriteButtons)
+            for (ImageButton favoriteButton : mFavoriteButtons) {
                 favoriteButton.setVisibility(View.VISIBLE);
+            }
 
             BottomBar bottomBar = ((MainActivity) mContext).mBottomBar;
             for (int index = 0; index < bottomBar.getTabCount(); index++) {
@@ -406,15 +411,17 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
                 bottomBar.setAlpha(1.0f);
             }
 
+            ((MainActivity) mContext).enableFAM();
+            ((MainActivity) mContext).enableSearchFAB();
+
             isChoiceMode = false;
             mCount = 0;
         }
     }
 
     private int getSelectedPosition() {
-        for (int index = 0; index < mWordSets.size(); index++) {
-            if (mWordSets.get(index).isSelected())
-                return index;
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            if (mIsSelected.get(index)) return index;
         }
 
         return -1;
@@ -422,47 +429,41 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
     private ArrayList<WordSet> getSelectedWordSets() {
         ArrayList<WordSet> wordSets = new ArrayList<>();
-        for (WordSet wordSet : mWordSets) {
-            if (wordSet.isSelected())
-                wordSets.add(wordSet);
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            if (mIsSelected.get(index)) wordSets.add(mWordSets.get(index));
         }
 
         return wordSets;
     }
 
     private void selectAllWords() {
-        for (WordSet wordSet : mWordSets)
-            wordSet.setSelected(true);
-        for (CheckBox checkBox : mCheckBoxes)
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            mIsSelected.set(index, true);
+        }
+        for (CheckBox checkBox : mCheckBoxes) {
             checkBox.setChecked(true);
+        }
     }
 
     private void deselectAllWords() {
-        for (WordSet wordSet : mWordSets)
-            wordSet.setSelected(false);
-        for (CheckBox checkBox : mCheckBoxes)
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            mIsSelected.set(index, false);
+        }
+        for (CheckBox checkBox : mCheckBoxes) {
             checkBox.setChecked(false);
+        }
     }
 
     private void removeWords() {
         for (int index = 0; index < mWordSets.size(); ) {
             WordSet wordSet = mWordSets.get(index);
 
-            if (wordSet.isSelected()) {
-//                if (mContext instanceof WordInListActivity) {
-//                    if (((WordInListActivity) mContext).getViewType() == VocabularyAdapter.TYPE_HEADER) {
-//                        mDBManager.setFavorite(wordSet, false);
-//
-//                        int position = mWordRecyclerViewAdapter.search(wordSet);
-//                        mWordRecyclerViewAdapter.mWordSets.get(position).setFavorite(false);
-//                        mWordRecyclerViewAdapter.notifyDataSetChanged();
-//                    } else
-//                        mDBManager.removeWordInList(((WordInListActivity) mContext).getWordList(), wordSet);
-//                } else {
+            if (mIsSelected.get(index)) {
                 mDBManager.removeWord(wordSet);
-//                }
                 mWordSets.remove(index);
                 mCheckBoxes.remove(index);
+                mFavoriteButtons.remove(index);
+                mIsSelected.remove(index);
                 notifyItemRemoved(index);
                 notifyItemRangeChanged(index, mWordSets.size());
             } else {
@@ -473,7 +474,7 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
     private void editWord(WordSet wordSet) {
         int position = getSelectedPosition();
-        mDBManager.editWord(mWordSets.get(getSelectedPosition()), wordSet);
+        mDBManager.editWord(mWordSets.get(position), wordSet);
         mWordSets.set(position, wordSet);
         notifyDataSetChanged();
     }
@@ -482,10 +483,12 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
         for (int index = 0; index < mWordSets.size(); ) {
             WordSet wordSet = mWordSets.get(index);
 
-            if (wordSet.isSelected()) {
+            if (mIsSelected.get(index)) {
                 mDBManager.removeWordInVoca(mVocabulary, wordSet);
                 mWordSets.remove(index);
                 mCheckBoxes.remove(index);
+                mFavoriteButtons.remove(index);
+                mIsSelected.remove(index);
                 notifyItemRemoved(index);
                 notifyItemRangeChanged(index, mWordSets.size());
             } else {
@@ -494,16 +497,23 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
         }
     }
 
-    /*
-        private void checkMode(TranslateAnimation animation) {
-            for (LinearLayout itemLayout : mLayouts) {
-                //itemLayout.startAnimation(animation);
-                itemLayout.setPadding(100, 0, 0, 0);
-                //itemLayout.setHasTransientState(true);
+    private void removeFavorite() {
+        for (int index = 0; index < mWordSets.size(); ) {
+            WordSet wordSet = mWordSets.get(index);
 
+            if (mIsSelected.get(index)) {
+                mDBManager.setFavorite(wordSet.getWord(), false);
+                mWordSets.remove(index);
+                mCheckBoxes.remove(index);
+                mFavoriteButtons.remove(index);
+                mIsSelected.remove(index);
+                notifyItemRemoved(index);
+                notifyItemRangeChanged(index, mWordSets.size());
+            } else {
+                index++;
             }
         }
-    */
+    }
 
     public void add(WordSet wordSet) {
         if (wordSet != null) {

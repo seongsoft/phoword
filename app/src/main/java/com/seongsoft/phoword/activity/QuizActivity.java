@@ -1,11 +1,14 @@
 package com.seongsoft.phoword.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -13,9 +16,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.seongsoft.phoword.manager.DatabaseManager;
 import com.seongsoft.phoword.R;
 import com.seongsoft.phoword.component.WordSet;
+import com.seongsoft.phoword.manager.DatabaseManager;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -23,7 +26,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by dsm_025 on 2016-06-27.
@@ -35,9 +40,8 @@ public class QuizActivity extends AppCompatActivity {
     private TextView mQuestionTextView;
     private EditText mInputEditText;
     private ImageView mResultImageView;
-    private ImageButton mNextImageButton;
+    private Button mNextButton;
 
-    private int mWordCount;
     private int mNumCorrect;
     private int mNumWrong;
 
@@ -46,10 +50,6 @@ public class QuizActivity extends AppCompatActivity {
     int numWords;
     String vocaName;
     String[] type;
-    String[] words;
-
-    String question;
-    String answer;
 
     String mean_question;
     List<String> mean_anaswer;
@@ -58,7 +58,6 @@ public class QuizActivity extends AppCompatActivity {
     String sound_question;
     String sound_answer;
     String example_qustion;
-    String example_realAnswer;
     String example_answer;
     String current_quiz;
     int cnt = 0;
@@ -78,34 +77,54 @@ public class QuizActivity extends AppCompatActivity {
         randQuiz();
 
         mResultImageView = (ImageView) findViewById(R.id.quiz_result_iv);
-
         mQuestionTextView = (TextView) findViewById(R.id.quiz_question_tv);
+        mSoundButton = (ImageButton)findViewById(R.id.sound);
         question();
 
         mInputEditText = (EditText) findViewById(R.id.quiz_input_et);
+        mInputEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) hideKeyboard(v);
+            }
+        });
+        mInputEditText.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                    mNextButton.performClick();
+                    return true;
+                }
 
-        mNextImageButton = (ImageButton) findViewById(R.id.quiz_next_ib);
-        mNextImageButton.setOnClickListener(new View.OnClickListener() {
+                return false;
+            }
+        });
+
+        mNextButton = (Button) findViewById(R.id.quiz_next_btn);
+        mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 nextQuestion();
             }
         });
     }
-    private void createQuiz(){
-        words = new String[numWords];
-        List<WordSet> list = mDBManager.selectWordsforQuiz(vocaName, numWords);
-        for(int i = 0; i < list.size(); i++){
-            words[i] = list.get(i).getWord();
-        }
+    private void createQuiz() {
+        mWordSets = mDBManager.selectWordsforQuiz(vocaName, numWords);
+
+        Collections.sort(mWordSets, WordSet.Comparator);
+
         //DB에서 단어 불러오기 메소드 처리
     }
-    private void randQuiz(){
-        String word = words[cnt];
-        int ran = (int) (Math.random() * type.length - 1);
+
+    private void randQuiz() {
+        WordSet wordSet = mWordSets.get(cnt);
+        int ran = 0;
+        if (type.length > 1) {
+            ran = new Random(System.currentTimeMillis()).nextInt(type.length);
+        }
+
         current_quiz = type[ran];
-        WordSet wordSet = mDBManager.selectWord(words[cnt]);
-        switch (type[ran]){
+        switch (current_quiz) {
             case "뜻":
                 mean_question =  wordSet.getWord();
                 mean_anaswer = wordSet.getMeaning();
@@ -120,20 +139,22 @@ public class QuizActivity extends AppCompatActivity {
                 break;
             case "예문":
                 List<String> list = wordSet.getExample();
-                String q = list.get((int) (Math.random() * list.size() - 1));
-                example_qustion = exampleQuiz_question(q, word);
-                example_answer = q;
-                example_realAnswer = word;
+                String q = list.get(
+                        new Random(System.currentTimeMillis()).nextInt(list.size() - 1));
+                example_qustion = exampleQuiz_question(q, wordSet.getWord());
+                example_answer = wordSet.getWord();
                 break;
         }
     }
-    private String exampleQuiz_question(String data, String word){
+
+    private String exampleQuiz_question(String data, String word) {
         String a;
         a = data.replace(word, "[       ]");
         return a;
     }
+
     private void question() {
-        switch (current_quiz){
+        switch (current_quiz) {
             case "뜻":
                 mQuestionTextView.setText(mean_question);
                 break;
@@ -147,20 +168,19 @@ public class QuizActivity extends AppCompatActivity {
                 mQuestionTextView.setText(q);
                 break;
             case "발음":
-                mSoundButton = (ImageButton)findViewById(R.id.sound);
+                mQuestionTextView.setVisibility(View.INVISIBLE);
                 mSoundButton.setVisibility(View.VISIBLE);
-                mSoundButton.bringToFront();
                 mSoundButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        playAudio(sound_question);
-                    }
-                });
+                @Override
+                public void onClick(View v) {
+                    playAudio(sound_question);
+                }
+            });
                 break;
             case "예문":
                 mQuestionTextView.setText(example_qustion);
                 break;
-            }
+        }
 
     }
 
@@ -194,11 +214,13 @@ public class QuizActivity extends AppCompatActivity {
 
     private void nextQuestion() {
         checkAnswer();
-        if (cnt == words.length - 1) {
+        if (cnt == mWordSets.size() - 1) {
             mQuestionTextView.setText(null);
             displayResult();
         }
         else{
+            mSoundButton.setVisibility(View.INVISIBLE);
+            mQuestionTextView.setVisibility(View.VISIBLE);
             mInputEditText.setText(null);
             cnt++;
             randQuiz();
@@ -243,7 +265,7 @@ public class QuizActivity extends AppCompatActivity {
 
                 break;
             case "예문":
-                if(example_realAnswer.equals(answer)) {
+                if(example_answer.equals(answer)) {
                     upCount();
                     Toast.makeText(getApplicationContext(), "맞췄습니다", Toast.LENGTH_SHORT).show();
                     break;
@@ -259,13 +281,16 @@ public class QuizActivity extends AppCompatActivity {
         }
         mResultImageView.setImageDrawable(null);
     }
+
     public void upCount() {
-        mDBManager.upCountQuizWord(words[cnt]);
+        mDBManager.upCountQuizWord(mWordSets.get(cnt).getWord());
         mNumCorrect++;
     }
+
     public void downCount() {
         mNumWrong++;
     }
+
     private void displayResult() {
         TextView correctPercentageTV = (TextView) findViewById(R.id.quiz_correct_percentage);
         TextView numCorrectTV = (TextView) findViewById(R.id.quiz_num_correct_tv);
@@ -287,7 +312,7 @@ public class QuizActivity extends AppCompatActivity {
         resultLayout.setVisibility(View.VISIBLE);
 
         Button okButton = (Button) findViewById(R.id.quiz_ok_btn);
-        mNextImageButton.setVisibility(View.INVISIBLE);
+        mNextButton.setVisibility(View.INVISIBLE);
         okButton.setVisibility(View.VISIBLE);
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -297,45 +322,12 @@ public class QuizActivity extends AppCompatActivity {
         });
     }
 
-
-//    @Override
-//    protected void onCreate(@Nullable Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_quiz);
-//
-//        txt = (TextView)findViewById(R.id.question);
-//        wordSets =  DBManager.getInstance(this).selectAllWords();
-//        txt.append(wordSets.get(0).getMeaning());
-//        edit = (EditText)findViewById(R.id.answer);
-//        checkButton = (Button)findViewById(R.id.check_button);
-//        checkButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                checkAnswer();
-//                if(wordSets.size() > listCnt + 1) {
-//                    edit.setText("");
-//                    txt.setText("문제 : " + wordSets.get(++listCnt).getMeaning());
-//                }else{
-//                    Intent i = getIntent();
-//                    setResult(RESULT_OK);
-//                    Toast.makeText(getApplicationContext(), "맞춘 개수 : " + trueCnt + " 틀린 개수" + falsetCnt , Toast.LENGTH_LONG).show();
-//                    finish();
-//                }
-//            }
-//        });
-//    }
-//
-//    public void checkAnswer(){
-//        String correct= wordSets.get(listCnt).getMeaning();
-//        String answer = String.valueOf(edit.getText());
-//        if(correct.equals(answer)){
-//            Toast.makeText(getApplicationContext(), "정답입니다.", Toast.LENGTH_SHORT).show();
-//            trueCnt++;
-//        }else{
-//            Toast.makeText(getApplicationContext(), "오답입니다.", Toast.LENGTH_SHORT).show();
-//            falsetCnt++;
-//        }
-//    }
+    private void hideKeyboard(View view) {
+        if (view != null) {
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
 
 }
 

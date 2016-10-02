@@ -51,8 +51,6 @@ public class QuizAdapter extends RecyclerView.Adapter<QuizAdapter.ViewHolder> {
 
         holder.mTextView.setText(vocabulary.getName());
 
-        cardView.performClick();
-
         cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

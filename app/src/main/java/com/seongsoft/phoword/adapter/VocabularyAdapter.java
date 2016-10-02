@@ -186,8 +186,12 @@ public class VocabularyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onVocabularyAdded(Vocabulary vocabulary) {
-        mDBManager.insertVoca(vocabulary, null);
-        add(vocabulary);
+        if (mDBManager.insertVoca(vocabulary, null)) {
+            add(vocabulary);
+        } else {
+            Toast.makeText(mContext, "'" + vocabulary.getName() + "'이(가) 이미 존재합니다.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean isPositionHeader(int position) {

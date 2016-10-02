@@ -1,7 +1,6 @@
 package com.seongsoft.phoword.utility;
 
 import android.content.Context;
-import android.os.Environment;
 import android.util.Log;
 
 import com.seongsoft.phoword.manager.DatabaseManager;
@@ -110,8 +109,9 @@ public class ParseDictionary {
                     connection.connect();
                     int lengthOfFile = connection.getContentLength();
                     Log.d("length : ", lengthOfFile + "");
-                    File audioForder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/PhoWord/");
+                    File audioForder = new File(mContext.getFilesDir() + "/audio/");
 
+                    Log.d("path", audioForder.getAbsolutePath());
                     if (!audioForder.exists()) {
                         audioForder.mkdir();
                         new File(audioForder.getPath() + ".nomedia");

@@ -10,13 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.seongsoft.phoword.R;
 import com.seongsoft.phoword.activity.MainActivity;
-import com.seongsoft.phoword.manager.DatabaseManager;
 import com.seongsoft.phoword.adapter.QuizAdapter;
+import com.seongsoft.phoword.component.Vocabulary;
 import com.seongsoft.phoword.dialog.QuizNumWordsDialogFragment;
 import com.seongsoft.phoword.dialog.QuizTypesDialogFragment;
-import com.seongsoft.phoword.R;
-import com.seongsoft.phoword.component.Vocabulary;
+import com.seongsoft.phoword.manager.DatabaseManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +94,7 @@ public class QuizFragment extends Fragment {
         numWordClickLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                QuizNumWordsDialogFragment.newInstance(mNumWords,
+                QuizNumWordsDialogFragment.newInstance(mNumWords, mVocabulary,
                         new QuizNumWordsDialogFragment.QuizNumWordsDialogListener() {
                             @Override
                             public void onConfirm(int numWords) {
@@ -122,7 +122,7 @@ public class QuizFragment extends Fragment {
 
                                 for (int index = 0; index < mQuizTypeItems.length; index++) {
                                     if (mQuizTypeCheckedItems[index]) {
-                                        if (quizTypeSubTV.getText() == "") {
+                                        if (quizTypeSubTV.getText().toString().equals("")) {
                                             quizTypeSubTV.setText(mQuizTypeItems[index]);
                                         } else {
                                             quizTypeSubTV.append(", " + mQuizTypeItems[index]);

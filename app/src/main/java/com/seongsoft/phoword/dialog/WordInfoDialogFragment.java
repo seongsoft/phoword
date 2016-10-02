@@ -55,9 +55,13 @@ public class WordInfoDialogFragment extends DialogFragment {
         final WordSet wordSet = getArguments().getParcelable(ARGS_KEY);
 
         if (wordSet != null) {
-            if (wordSet.getWord() != null) wordTV.setText(wordSet.getWord());
-            if (wordSet.getPronounce() != null) pronounceTV.setText(wordSet.getPronounce());
-            if (wordSet.getAudio() != null) {
+            if (wordSet.getWord() != null && !wordSet.getWord().equals("null")) {
+                wordTV.setText(wordSet.getWord());
+            }
+            if (wordSet.getPronounce() != null && !wordSet.getPronounce().equals("null")) {
+                pronounceTV.setText(wordSet.getPronounce());
+            }
+            if (wordSet.getAudio() != null  && !wordSet.getAudio().equals("null")) {
                 audioIB.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -65,12 +69,12 @@ public class WordInfoDialogFragment extends DialogFragment {
                     }
                 });
             }
-            if (wordSet.getMeaning() != null) {
+            if (wordSet.getMeaning() != null && !wordSet.getMeaning().get(0).equals("null")) {
                 for (int index = 0; index < wordSet.getMeaning().size(); index++) {
                     meaningTV.append(index + 1 + ". " + wordSet.getMeaning().get(index) + "\n");
                 }
             }
-            if (wordSet.getExample() != null) {
+            if (wordSet.getExample() != null && !wordSet.getExample().get(0).equals("null")) {
                 for (int index = 0; index < wordSet.getExample().size(); index++) {
                     exampleTV.append(wordSet.getExample().get(index) + "\n");
                     exampleTV.append(wordSet.getExampleMeaning().get(index) + "\n\n");
@@ -82,7 +86,6 @@ public class WordInfoDialogFragment extends DialogFragment {
     }
 
     //params 줄 때 소문자로 바꿔서 보내줄 것.
-    //밑의 내용은 알아서 잘 쓰시길
     public void playAudio(String path) {     //오디오 재생 메소드
         ContextWrapper contextWrapper = new ContextWrapper(getContext());
 

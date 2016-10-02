@@ -12,7 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int SPLASH_TIME = 2000;
+    private static final int SPLASH_TIME = 1500;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

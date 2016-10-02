@@ -29,17 +29,17 @@ import android.widget.Toast;
 import com.github.clans.fab.FloatingActionMenu;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
-import com.seongsoft.phoword.dialog.AddWordDialogFragment;
-import com.seongsoft.phoword.tesseract.DataPath;
-import com.seongsoft.phoword.manager.DatabaseManager;
-import com.seongsoft.phoword.utility.JSONParser;
-import com.seongsoft.phoword.fragment.QuizFragment;
 import com.seongsoft.phoword.R;
-import com.seongsoft.phoword.fragment.SettingsFragment;
 import com.seongsoft.phoword.component.Vocabulary;
+import com.seongsoft.phoword.component.WordSet;
+import com.seongsoft.phoword.dialog.AddWordDialogFragment;
+import com.seongsoft.phoword.fragment.QuizFragment;
+import com.seongsoft.phoword.fragment.SettingsFragment;
 import com.seongsoft.phoword.fragment.VocabularyFragment;
 import com.seongsoft.phoword.fragment.WordFragment;
-import com.seongsoft.phoword.component.WordSet;
+import com.seongsoft.phoword.manager.DatabaseManager;
+import com.seongsoft.phoword.tesseract.DataPath;
+import com.seongsoft.phoword.utility.JSONParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -427,6 +427,26 @@ public class MainActivity extends AppCompatActivity
 
     public void hideStartQuizFAB() {
         mStartQuizFAB.hide(true);
+    }
+
+    public void disableSearchFAB() {
+        mSearchFAB.setEnabled(false);
+//        mSearchFAB.setAlpha(0.2f);
+    }
+
+    public void enableSearchFAB() {
+        mSearchFAB.setEnabled(true);
+        mSearchFAB.setAlpha(1.0f);
+    }
+
+    public void disableFAM() {
+        mFAM.setEnabled(false);
+        mFAM.setMenuButtonColorNormal(ContextCompat.getColor(this, android.R.color.darker_gray));
+    }
+
+    public void enableFAM() {
+        mFAM.setEnabled(true);
+        mFAM.setMenuButtonColorNormal(ContextCompat.getColor(this, R.color.colorPrimary));
     }
 
     private void doubleBackToExit() {

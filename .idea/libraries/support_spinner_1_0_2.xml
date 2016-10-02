@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="support-spinner-1.0.2">
+    <ANNOTATIONS>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/net.xpece.android/support-spinner/1.0.2/annotations.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/net.xpece.android/support-spinner/1.0.2/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/net.xpece.android/support-spinner/1.0.2/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.xpece.android/support-spinner/1.0.2/c58af9764a189d81a2df5c1dfa2ddadd6f118e8b/support-spinner-1.0.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

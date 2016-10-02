@@ -24,12 +24,16 @@ public class RecognizedWordAdapter extends RecyclerView.Adapter<RecognizedWordAd
     private List<WordSet> mWordSets;
     private List<CheckBox> mCheckBoxes;
 
+    private List<Boolean> mIsSelected;
+
     private int mCount;
 
     public RecognizedWordAdapter(Context context, ArrayList<WordSet> wordSets) {
         mContext = context;
         mWordSets = wordSets;
         mCheckBoxes = new ArrayList<>();
+
+        mIsSelected = new ArrayList<>();
     }
 
     @Override
@@ -45,7 +49,8 @@ public class RecognizedWordAdapter extends RecyclerView.Adapter<RecognizedWordAd
         final WordSet wordSet = mWordSets.get(position);
         final CheckBox checkBox = holder.mCheckBox;
 
-        mCheckBoxes.add(checkBox);
+        if (mCheckBoxes.size() <= position) mCheckBoxes.add(position, checkBox);
+        if (mIsSelected.size() <= position) mIsSelected.add(position, false);
 
         holder.mWordTV.setText(mWordSets.get(position).getWord());
         if (wordSet.getMeaning().size() > 1) {
@@ -59,13 +64,13 @@ public class RecognizedWordAdapter extends RecyclerView.Adapter<RecognizedWordAd
         holder.mClickLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (wordSet.isSelected())
+                if (mIsSelected.get(holder.getAdapterPosition()))
                     mCount--;
                 else
                     mCount++;
 
                 checkBox.setChecked(!checkBox.isChecked());
-                wordSet.setSelected(checkBox.isChecked());
+                mIsSelected.set(holder.getAdapterPosition(), checkBox.isChecked());
             }
         });
     }
@@ -77,22 +82,30 @@ public class RecognizedWordAdapter extends RecyclerView.Adapter<RecognizedWordAd
 
     public ArrayList<WordSet> getSelectedWordSets() {
         List<WordSet> selectedWordSets = new ArrayList<>();
-        for (int index = 0; index < mWordSets.size(); index++) {
-            if (mWordSets.get(index).isSelected()) selectedWordSets.add(mWordSets.get(index));
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            if (mIsSelected.get(index)) selectedWordSets.add(mWordSets.get(index));
         }
 
         return (ArrayList<WordSet>) selectedWordSets;
     }
 
     public void selectAll() {
-        for (CheckBox checkBox : mCheckBoxes) checkBox.setChecked(true);
-        for (WordSet wordSet : mWordSets) wordSet.setSelected(true);
+        for (CheckBox checkBox : mCheckBoxes) {
+            checkBox.setChecked(true);
+        }
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            mIsSelected.set(index, true);
+        }
         mCount = mWordSets.size();
     }
 
     public void deselectAll() {
-        for (CheckBox checkBox : mCheckBoxes) checkBox.setChecked(false);
-        for (WordSet wordSet : mWordSets) wordSet.setSelected(false);
+        for (CheckBox checkBox : mCheckBoxes) {
+            checkBox.setChecked(false);
+        }
+        for (int index = 0; index < mIsSelected.size(); index++) {
+            mIsSelected.set(index, false);
+        }
         mCount = 0;
     }
 
